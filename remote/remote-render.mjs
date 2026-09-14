@@ -118,7 +118,7 @@ Object.assign(Remote, {
         ${navButton("alert-button", "fa-envelope-o", t("ALERT_MENU_NAME"), true, "alert-menu")}
         ${navButton("notification-button", "fa-bell-o", t("NOTIFICATION_MENU_NAME"), true, "notification-menu")}
         ${navButton("links-button", "fa-link", t("LINKS"), true, "links-menu")}
-        ${navButton("mirror-link-button", "fa-external-link", t("VIEW_MIRROR"))}
+        ${navButton("mirror-link-button", "fa-television", t("VIEW_MIRROR"))}
       </nav>`;
   },
 
@@ -150,6 +150,7 @@ Object.assign(Remote, {
     return `<section class="menu-content edit-menu">
         ${this.renderEditMenuContent()}
         ${resultList("visible-modules", t("LOADING"), t("NO_MODULES_LOADED"))}
+        ${this.renderEditActions()}
       </section>`;
   },
 
@@ -162,6 +163,7 @@ Object.assign(Remote, {
     return `<section class="menu-content">
         ${this.renderSettingsMenuContent()}
         ${resultList("config-modules", t("LOADING"), t("NO_MODULES_LOADED"))}
+        ${this.renderSettingsActions()}
       </section>`;
   },
 
@@ -202,13 +204,13 @@ Object.assign(Remote, {
    */
   renderAlertMenu () {
     const t = (key) => this.translate(key);
-    return `<nav class="menu-nav">
+    return `<section class="menu-content">
+        ${this.renderAlertForm()}
+      </section>
+      <nav class="menu-nav action-bar">
         ${navButton("send-alert-button", "fa-send-o", t("SENDALERT"))}
         ${navButton("hide-alert-button", "fa-eye-slash", t("HIDEALERT"))}
-      </nav>
-      <section class="menu-content">
-        ${this.renderAlertForm()}
-      </section>`;
+      </nav>`;
   },
 
   /**
@@ -217,13 +219,13 @@ Object.assign(Remote, {
    */
   renderNotificationMenu () {
     const t = (key) => this.translate(key);
-    return `<nav class="menu-nav">
+    return `<section class="menu-content">
+        ${this.renderNotificationForm()}
+      </section>
+      <nav class="menu-nav action-bar">
         ${navButton("send-notification-button", "fa-send-o", t("SEND_NOTIFICATION"))}
         ${navButton("restore-notification-button", "fa-history", t("RESTORE"))}
-      </nav>
-      <section class="menu-content">
-        ${this.renderNotificationForm()}
-      </section>`;
+      </nav>`;
   },
 
   /**
@@ -322,27 +324,13 @@ Object.assign(Remote, {
   },
 
   /**
-   * Returns HTML for the edit menu content area (sliders, color pickers, action buttons).
+   * Returns HTML for the edit menu content area (sliders, color pickers).
    * @returns {string} HTML string for edit menu controls
    */
   renderEditMenuContent () {
     const t = (key) => this.translate(key);
 
     return `<div class="menu-element-container">
-        <div class="action-buttons-row">
-          <div id="save-button" class="button" role="button" aria-label="${t("SAVE")}" tabindex="0">
-            <span class="fa fa-fw fa-save" aria-hidden="true"></span>
-            <span class="text">${t("SAVE")}</span>
-          </div>
-          <div id="show-all-button" class="button" role="button" aria-label="${t("SHOWALL")}" tabindex="0">
-            <span class="fa fa-fw fa-toggle-on" aria-hidden="true"></span>
-            <span class="text">${t("SHOWALL")}</span>
-          </div>
-          <div id="hide-all-button" class="button" role="button" aria-label="${t("HIDEALL")}" tabindex="0">
-            <span class="fa fa-fw fa-toggle-off" aria-hidden="true"></span>
-            <span class="text">${t("HIDEALL")}</span>
-          </div>
-        </div>
         <div class="one-line">
           <span class="fa fa-fw fa-sun-o" aria-hidden="true"></span>
           <div id="brightness-container" class="slider-container" data-label="Brightness">
@@ -380,17 +368,47 @@ Object.assign(Remote, {
   },
 
   /**
-   * Returns HTML for the settings menu content area (warning, action buttons).
-   * @returns {string} HTML string for settings menu header controls
+   * Returns HTML for edit menu bottom action buttons (save, show-all, hide-all).
+   * @returns {string} HTML string for action buttons
+   */
+  renderEditActions () {
+    const t = (key) => this.translate(key);
+    return `<div class="action-buttons-row action-buttons-bottom">
+        <div id="save-button" class="button btn-primary" role="button" aria-label="${t("SAVE")}" tabindex="0">
+          <span class="fa fa-fw fa-save" aria-hidden="true"></span>
+          <span class="text">${t("SAVE")}</span>
+        </div>
+        <div id="show-all-button" class="button" role="button" aria-label="${t("SHOWALL")}" tabindex="0">
+          <span class="fa fa-fw fa-toggle-on" aria-hidden="true"></span>
+          <span class="text">${t("SHOWALL")}</span>
+        </div>
+        <div id="hide-all-button" class="button" role="button" aria-label="${t("HIDEALL")}" tabindex="0">
+          <span class="fa fa-fw fa-toggle-off" aria-hidden="true"></span>
+          <span class="text">${t("HIDEALL")}</span>
+        </div>
+      </div>`;
+  },
+
+  /**
+   * Returns HTML for the settings menu warning banner.
+   * @returns {string} HTML string for warning
    */
   renderSettingsMenuContent () {
     const t = (key) => this.translate(key);
     return `<div id="settings-warning" class="settings-warning">
         <span class="fa fa-fw fa-exclamation-triangle" aria-hidden="true"></span>
         <span>${t("EXPERIMENTAL")}</span>
-      </div>
-      <div class="action-buttons-row">
-        <div id="save-config" class="button">
+      </div>`;
+  },
+
+  /**
+   * Returns HTML for settings menu bottom action buttons (save, restore, add).
+   * @returns {string} HTML string for action buttons
+   */
+  renderSettingsActions () {
+    const t = (key) => this.translate(key);
+    return `<div class="action-buttons-row action-buttons-bottom">
+        <div id="save-config" class="button btn-primary">
           <span class="fa fa-fw fa-save" aria-hidden="true"></span>
           <span class="text">${t("SAVE")}</span>
         </div>

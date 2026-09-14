@@ -3,6 +3,7 @@ import "./remote-socket.mjs";
 import "./remote-modules.mjs";
 import "./remote-config.mjs";
 import "./remote-render.mjs";
+import "./remote-auth.mjs";
 import {registerRemoteMenuRouting} from "./remote-menu-routing.mjs";
 import {registerRemoteMenuUI} from "./remote-menu-ui.mjs";
 import {Remote} from "./remote.mjs";

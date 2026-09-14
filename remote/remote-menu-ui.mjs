@@ -15,19 +15,25 @@ const MENU_TITLE_MAP = {
   "add-module-menu": "ADD_MODULE",
   "update-menu": "UPDATE_MENU_NAME",
   "alert-menu": "ALERT_MENU_NAME",
+  "notification-menu": "NOTIFICATION_MENU_NAME",
   "links-menu": "LINKS",
   "classes-menu": "CLASSES_MENU_NAME"
 };
 
 const ICON_CLASS_MAP = {
+  "main-menu": "icon-main",
   "power-menu": "icon-power",
   "edit-menu": "icon-edit",
   "settings-menu": "icon-settings",
   "classes-menu": "icon-classes",
   "update-menu": "icon-update",
   "alert-menu": "icon-alert",
+  "notification-menu": "icon-notification",
   "links-menu": "icon-links",
-  "add-module-menu": "icon-add"
+  "add-module-menu": "icon-add",
+  "mirror-nav-menu": "icon-nav",
+  "mirror-ops-menu": "icon-ops",
+  "mirror-creds-menu": "icon-creds"
 };
 
 const EDIT_SLIDERS = [
@@ -565,58 +571,52 @@ function registerHeaderAndNavigation (remote) {
 
         }
 
-        const hasTranslations = this.translations && Object.keys(this.translations).length > 0;
-        if (!hasTranslations) {
+        const key = menuName || this.currentMenu || "main-menu";
 
-          return;
+        if (key === "main-menu") {
 
-        }
+          headerTitleElement.textContent = "FOXY 🦊";
 
-        const key = menuName || this.currentMenu || "main-menu",
-          titleKey = this.getMenuTitleKey(key);
-        let titleText = titleKey
-          ? this.translate(titleKey)
-          : null;
+        } else {
 
-        // Special case for classes-menu: use button text if available
-        if (!titleText && key === "classes-menu") {
+          const titleKey = this.getMenuTitleKey(key);
+          let titleText = titleKey ? this.translate(titleKey) : null;
 
-          const classesButton = document.querySelector("#classes-button");
-          titleText = classesButton?.querySelector(".text")?.textContent || this.translate("TITLE");
+          if (!titleText && key === "classes-menu") {
 
-        }
+            const classesButton = document.querySelector("#classes-button");
+            titleText = classesButton?.querySelector(".text")?.textContent;
 
-        // For custom/dynamic menus, use button text
-        if (!titleText && key.endsWith("-menu")) {
+          }
 
-          const buttonId = key.replace(
-              "-menu",
-              "-button"
-            ),
-            button = document.getElementById(buttonId);
-          titleText = button?.querySelector(".text")?.textContent;
+          if (!titleText && key.endsWith("-menu")) {
+
+            const buttonId = key.replace("-menu", "-button"),
+              button = document.getElementById(buttonId);
+            titleText = button?.querySelector(".text")?.textContent;
+
+          }
+
+          headerTitleElement.textContent = titleText || "FOXY 🦊";
 
         }
 
-        if (titleText) {
-
-          headerTitleElement.textContent = titleText;
-
-        }
-
-        // Remove all icon classes
+        // Keep icon class in sync with current menu
         headerTitleElement.classList.remove(
+          "icon-main",
           "icon-power",
           "icon-edit",
           "icon-settings",
           "icon-classes",
           "icon-update",
           "icon-alert",
+          "icon-notification",
           "icon-links",
-          "icon-add"
+          "icon-add",
+          "icon-nav",
+          "icon-ops",
+          "icon-creds"
         );
-
-        // Add icon class for current menu
         const iconCssClass = ICON_CLASS_MAP[key];
         if (iconCssClass) {
 
@@ -784,6 +784,12 @@ function registerDynamicMenus (remote) {
       const dynamicMenus = Object.values(this.dynamicMenus ?? {});
       for (const menu of dynamicMenus) {
 
+        if (!menu?.id) {
+
+          continue;
+
+        }
+
         this.createMenuElement(
           menu,
           "main",
@@ -796,6 +802,12 @@ function registerDynamicMenus (remote) {
       // Drain pending menus received before main menu was ever shown
       const pendingMenus = this.pendingDynamicMenus ?? [];
       for (const pending of pendingMenus) {
+
+        if (!pending?.id) {
+
+          continue;
+
+        }
 
         this.dynamicMenus = {...this.dynamicMenus, [pending.id]: pending};
         this.createMenuElement(
@@ -831,7 +843,39 @@ function registerDynamicMenus (remote) {
 
       if (!content) {
 
-        // Legacy no-arg call — no-op, pending draining now handled by injectDynamicMenuButtons
+        return;
+
+      }
+
+      if (Array.isArray(content)) {
+
+        for (const item of content) {
+
+          this.createDynamicMenu(item);
+
+        }
+        return;
+
+      }
+
+      // Handle object container without top-level id (e.g. { "0": {...}, "1": {...} })
+      if (!content.id && typeof content === "object") {
+
+        for (const item of Object.values(content)) {
+
+          if (item && typeof item === "object" && item.id) {
+
+            this.createDynamicMenu(item);
+
+          }
+
+        }
+        return;
+
+      }
+
+      if (!content.id) {
+
         return;
 
       }
@@ -1063,23 +1107,28 @@ function registerMenuElementAssembly (remote) {
       item.id = `${content.id}-button`;
       item.className = `button ${menu}-menu`;
 
-      if (content.icon) {
-
-        const mcmIcon = document.createElement("span");
-        mcmIcon.className = `fa fa-fw fa-${content.icon}`;
-        mcmIcon.setAttribute(
-          "aria-hidden",
-          "true"
-        );
-        item.append(mcmIcon);
-
-      }
+      const iconName = content.icon || (content.type === "menu" ? "folder-open-o" : (content.type === "slider" ? "sliders" : "dot-circle-o"));
+      const mcmIcon = document.createElement("span");
+      mcmIcon.className = `fa fa-fw fa-${iconName}`;
+      mcmIcon.setAttribute(
+        "aria-hidden",
+        "true"
+      );
+      item.append(mcmIcon);
 
       if (content.text) {
 
         const mcmText = document.createElement("span");
         mcmText.className = "text";
         mcmText.textContent = content.text;
+        item.append(mcmText);
+
+      } else if (content.id) {
+
+        // Fallback: tampilkan id sebagai nama agar tombol tidak kosong
+        const mcmText = document.createElement("span");
+        mcmText.className = "text";
+        mcmText.textContent = content.id;
         item.append(mcmText);
 
       }
